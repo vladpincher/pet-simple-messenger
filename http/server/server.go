@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"my-pet-simple-messenger/api/internal/config"
-	"my-pet-simple-messenger/api/logger"
+	"my-pet-simple-messenger/internal/config"
+	"my-pet-simple-messenger/internal/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -27,10 +27,7 @@ func PortInitialization() string {
 	return fmt.Sprintf(":%s", viper.GetString("PORT"))
 }
 
-func NewServer() *httpServer {
-
-	config := config.NewConfig()
-	logg := logger.NewLogger(config)
+func NewServer(config *config.Config, logg *logger.Logger) *httpServer {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
