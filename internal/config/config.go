@@ -10,15 +10,21 @@ import (
 type Config struct {
 	Loglevel string
 	Port     string
+	DBUrl    string
 }
 
 func PortInitialization() string {
-	viper.AutomaticEnv()
 	viper.SetDefault("PORT", "8080")
 	return fmt.Sprintf(":%s", viper.GetString("PORT"))
 }
 
+func DBUrlInitialization() string {
+	viper.SetDefault("DB_URL", "postgres://postgres:postgres@localhost:5432/messenger?sslmode=disable")
+	return fmt.Sprintf(":%s", viper.GetString("PORT"))
+}
+
 func NewConfig() *Config {
+	viper.AutomaticEnv()
 
 	lvl := os.Getenv("LOG_LEVEL")
 	if lvl == "" {
@@ -28,6 +34,7 @@ func NewConfig() *Config {
 	s := &Config{
 		Loglevel: lvl,
 		Port:     PortInitialization(),
+		DBUrl:    DBUrlInitialization(),
 	}
 
 	return s

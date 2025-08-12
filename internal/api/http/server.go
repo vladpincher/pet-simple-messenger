@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -16,9 +17,10 @@ const (
 )
 
 type httpServer struct {
-	route  *gin.Engine
-	port   string
-	logger *logger.Logger
+	route    *gin.Engine
+	port     string
+	database *sql.DB
+	logger   *logger.Logger
 }
 
 func PortInitialization() string {
@@ -27,15 +29,16 @@ func PortInitialization() string {
 	return fmt.Sprintf(":%s", viper.GetString("PORT"))
 }
 
-func NewServer(config *config.Config, logg *logger.Logger) *httpServer {
+func NewServer(config *config.Config, logg *logger.Logger, db *sql.DB) *httpServer {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
 
 	s := &httpServer{
-		route:  r,
-		port:   config.Port,
-		logger: logg,
+		route:    r,
+		port:     config.Port,
+		database: db,
+		logger:   logg,
 	}
 
 	r.GET("/hello", s.withLogging(), s.HomeHandler)

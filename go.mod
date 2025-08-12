@@ -44,6 +44,7 @@ require (
 )
 
 require (
+	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.20.1
 	go.uber.org/multierr v1.10.0 // indirect
 )
