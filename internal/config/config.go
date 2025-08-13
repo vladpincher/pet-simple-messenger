@@ -19,8 +19,20 @@ func PortInitialization() string {
 }
 
 func DBUrlInitialization() string {
-	viper.SetDefault("DB_URL", "postgres://postgres:postgres@localhost:5432/messenger?sslmode=disable")
-	return fmt.Sprintf(":%s", viper.GetString("PORT"))
+	viper.SetDefault("DB_PROTOCOL", "postgres")
+	viper.SetDefault("DB_USER", "postgres")
+	viper.SetDefault("DB_PASSWORD", "postgres")
+	viper.SetDefault("DB_HOST", "localhost")
+	viper.SetDefault("DB_PORT", "5432")
+	viper.SetDefault("DB_NAME", "messenger")
+	viper.SetDefault("DB_SSLMODE", "disable")
+
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s",
+		viper.GetString("DB_PROTOCOL"),
+		viper.GetString("DB_USER"), viper.GetString("DB_PASSWORD"),
+		viper.GetString("DB_HOST"), viper.GetString("DB_PORT"),
+		viper.GetString("DB_NAME"),
+		viper.GetString("DB_SSLMODE"))
 }
 
 func NewConfig() *Config {

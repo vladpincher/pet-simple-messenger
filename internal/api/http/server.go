@@ -1,7 +1,6 @@
 package server
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 	"my-pet-simple-messenger/internal/logger"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
 )
 
@@ -19,7 +19,7 @@ const (
 type httpServer struct {
 	route    *gin.Engine
 	port     string
-	database *sql.DB
+	database *sqlx.DB
 	logger   *logger.Logger
 }
 
@@ -29,7 +29,7 @@ func PortInitialization() string {
 	return fmt.Sprintf(":%s", viper.GetString("PORT"))
 }
 
-func NewServer(config *config.Config, logg *logger.Logger, db *sql.DB) *httpServer {
+func NewServer(config *config.Config, logg *logger.Logger, db *sqlx.DB) *httpServer {
 
 	r := gin.New()
 	r.Use(gin.Recovery())

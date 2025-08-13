@@ -1,7 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"my-pet-simple-messenger/internal/api/database"
 	server "my-pet-simple-messenger/internal/api/http"
@@ -11,23 +14,38 @@ import (
 
 func main() {
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		exit := make(chan os.Signal, 1)
+		signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+		<-exit
+		cancel()
+	}()
+
 	cfg := config.NewConfig()
-	logg := logger.NewLogger(cfg)
+	log := logger.NewLogger(cfg)
 
 	db, err := database.InitDB(cfg.DBUrl)
 	if err != nil {
-		fmt.Println("database error:", err)
+		log.Fatal("Database error:", err)
 	}
 	defer func() {
 		if err := db.Close(); err != nil {
-			fmt.Printf("Ошибка при закрытии БД: %v\n", err)
+			log.Fatal("Error closing database: %v", err)
 		}
 	}()
 
-	s := server.NewServer(cfg, logg, db)
-	defer s.Close()
+	s := server.NewServer(cfg, log, db)
 
-	if err := s.Start(); err != nil {
-		fmt.Println("server error:", err)
-	}
+	go func() {
+		if err := s.Start(); err != nil {
+			log.Fatal("server error:", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Info("Shutting down...")
+	s.Close()
 }
