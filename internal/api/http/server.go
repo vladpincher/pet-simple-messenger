@@ -6,6 +6,8 @@ import (
 
 	"my-pet-simple-messenger/internal/config"
 	"my-pet-simple-messenger/internal/logger"
+	"my-pet-simple-messenger/internal/repository"
+	"my-pet-simple-messenger/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -41,8 +43,13 @@ func NewServer(config *config.Config, logg *logger.Logger, db *sqlx.DB) *httpSer
 		logger:   logg,
 	}
 
+	repo := repository.NewUserRepository(db)
+	service := service.NewUserService(repo)
+	userAPI := NewUserAPI(service)
+
 	r.GET("/hello", s.withLogging(), s.HomeHandler)
 	r.NoRoute(s.withLogging(), s.NotFoundHandler)
+	r.POST("/register", userAPI.Register)
 
 	return s
 }
