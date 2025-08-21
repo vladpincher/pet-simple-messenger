@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"my-pet-simple-messenger/api/internal/config"
-	"my-pet-simple-messenger/api/logger"
+	"my-pet-simple-messenger/internal/config"
+	"my-pet-simple-messenger/internal/logger"
+	"my-pet-simple-messenger/internal/repository"
+	"my-pet-simple-messenger/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
 )
 
@@ -16,9 +19,10 @@ const (
 )
 
 type httpServer struct {
-	route  *gin.Engine
-	port   string
-	logger *logger.Logger
+	route    *gin.Engine
+	port     string
+	database *sqlx.DB
+	logger   *logger.Logger
 }
 
 func PortInitialization() string {
@@ -27,22 +31,25 @@ func PortInitialization() string {
 	return fmt.Sprintf(":%s", viper.GetString("PORT"))
 }
 
-func NewServer() *httpServer {
-
-	config := config.NewConfig()
-	logg := logger.NewLogger(config)
+func NewServer(config *config.Config, logg *logger.Logger, db *sqlx.DB) *httpServer {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
 
 	s := &httpServer{
-		route:  r,
-		port:   config.Port,
-		logger: logg,
+		route:    r,
+		port:     config.Port,
+		database: db,
+		logger:   logg,
 	}
+
+	repo := repository.NewUserRepository(db)
+	service := service.NewUserService(repo)
+	userAPI := NewUserAPI(service)
 
 	r.GET("/hello", s.withLogging(), s.HomeHandler)
 	r.NoRoute(s.withLogging(), s.NotFoundHandler)
+	r.POST("/register", userAPI.Register)
 
 	return s
 }

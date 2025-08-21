@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"my-pet-simple-messenger/api/internal/config"
+	"my-pet-simple-messenger/internal/config"
 
 	"go.uber.org/zap"
 )
