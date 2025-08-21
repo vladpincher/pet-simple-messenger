@@ -1,11 +1,18 @@
 package service
 
 import (
+	"context"
 	"errors"
+	"fmt"
+
 	"my-pet-simple-messenger/internal/models"
 	"my-pet-simple-messenger/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type UserService struct {
@@ -16,26 +23,23 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) Register(username, surname, email, phone, password string) error {
+func (s *UserService) CreateUser(ctx context.Context, user models.User) error {
 	// 1. Проверка — есть ли уже такой пользователь
-	_, err := s.repo.GetUserByUsername(username)
+	_, err := s.repo.GetUserByUsername(ctx, user.Username)
 	if err == nil {
-		return errors.New("user already exists")
+		return ErrUserAlreadyExists
 	}
 
 	// 2. Хешируем пароль
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.HashPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return fmt.Errorf("hash password: %w", err)
+	}
+	user.HashPassword = string(hash)
+
+	if err := s.repo.CreateUser(ctx, user); err != nil {
+		return fmt.Errorf("create user: %w", err)
 	}
 
-	// 3. Создаем пользователя
-	user := models.User{
-		Username:     username,
-		Surname:      surname,
-		Email:        email,
-		Phone:        phone,
-		HashPassword: string(hash),
-	}
-	return s.repo.CreateUser(user)
+	return nil
 }

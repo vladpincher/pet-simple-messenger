@@ -6,10 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"my-pet-simple-messenger/internal/api/database"
 	server "my-pet-simple-messenger/internal/api/http"
 	"my-pet-simple-messenger/internal/config"
+	"my-pet-simple-messenger/internal/database"
 	"my-pet-simple-messenger/internal/logger"
+
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -41,7 +43,7 @@ func main() {
 
 	go func() {
 		if err := s.Start(); err != nil {
-			log.Fatal("server error:", err)
+			zap.Error(err)
 		}
 	}()
 

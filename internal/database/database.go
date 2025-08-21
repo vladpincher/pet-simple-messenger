@@ -18,7 +18,7 @@ func InitDB(connStr string) (*sqlx.DB, error) {
 			var err error
 			db, err = sqlx.Open("postgres", connStr)
 			if err != nil {
-				return fmt.Errorf("ошибка при подключении к БД: %w", err)
+				return fmt.Errorf("Error in DB open %w", err)
 			}
 
 			if err := db.Ping(); err != nil {
@@ -29,7 +29,7 @@ func InitDB(connStr string) (*sqlx.DB, error) {
 		},
 		retry.Attempts(5),
 		retry.Delay(1*time.Second),
-		retry.DelayType(retry.FixedDelay),
+		retry.DelayType(retry.BackOffDelay),
 		retry.LastErrorOnly(true),
 	)
 

@@ -1,8 +1,10 @@
 package server
 
 import (
+	"my-pet-simple-messenger/internal/models"
 	"my-pet-simple-messenger/internal/service"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +32,18 @@ func (api *UserAPI) Register(c *gin.Context) {
 		return
 	}
 
-	err := api.service.Register(req.Username, req.Surname, req.Email, req.Phone, req.Password)
+	user := models.User{
+		Username:     req.Username,
+		Surname:      req.Surname,
+		Email:        req.Email,
+		Phone:        req.Phone,
+		HashPassword: req.Password,
+		CreatedAt:    time.Now(),
+	}
+
+	ctx := c.Request.Context()
+
+	err := api.service.CreateUser(ctx, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
